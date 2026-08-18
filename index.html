@@ -58,6 +58,9 @@
         .badge-green { background: rgba(34, 197, 94, 0.2); color: var(--green); }
         .badge-red { background: rgba(239, 68, 68, 0.2); color: var(--red); }
         .badge-yellow { background: rgba(245, 158, 11, 0.2); color: var(--yellow); }
+
+        .modal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.7); justify-content: center; align-items: center; z-index: 1000; }
+        .modal-content { background: var(--bg-panel); border: 1px solid var(--border); border-radius: 8px; padding: 25px; width: 600px; max-height: 80vh; overflow-y: auto; }
     </style>
 </head>
 <body>
@@ -65,12 +68,13 @@
     <aside>
         <div class="brand">🌐 LIVING ECONOMY</div>
         <ul class="menu">
-            <li class="active" onclick="switchTab('dash', event)">📊 Trạng thái Vĩ mô</li>
-            <li onclick="switchTab('market', event)">📈 Thị trường & Hàng Hóa</li>
+            <li class="active" onclick="switchTab('dash', event)">📊 Trạng thái Vĩ mô & GDP</li>
+            <li onclick="switchTab('market', event)">📈 Thị trường & Sổ Lệnh</li>
             <li onclick="switchTab('company', event)">🏢 Doanh nghiệp của Bạn</li>
             <li onclick="switchTab('competitors', event)">🏭 Doanh nghiệp NPC</li>
+            <li onclick="switchTab('labor', event)">💼 Thị trường Lao động</li>
             <li onclick="switchTab('npcs', event)">👥 Xã hội & Dân cư</li>
-            <li onclick="switchTab('bank', event) ">🏦 Ngân hàng & Tài chính</li>
+            <li onclick="switchTab('bank', event)">🏦 Ngân hàng Trung Ương</li>
             <li onclick="switchTab('events', event)">⚡ Sự kiện & Vĩ mô</li>
         </ul>
     </aside>
@@ -92,7 +96,7 @@
         <div class="content">
             <!-- DASHBOARD -->
             <div id="dash" class="view active">
-                <h2>Tổng Quan Nền Kinh Tế Vĩ Mô</h2>
+                <h2>Tổng Quan Nền Kinh Tế Vĩ Mô & Tài Khoản Quốc Gia</h2>
                 <br>
                 <div class="grid">
                     <div class="card">
@@ -100,27 +104,35 @@
                         <div class="card-val" id="stat-m2">0 $</div>
                     </div>
                     <div class="card">
-                        <div class="card-title">GDP Ngày Gần Nhất</div>
+                        <div class="card-title">GDP Hôm Nay</div>
                         <div class="card-val" id="stat-gdp">0 $</div>
                     </div>
                     <div class="card">
-                        <div class="card-title">Vốn của Bạn</div>
-                        <div class="card-val" id="stat-player-cash">100,000 $</div>
+                        <div class="card-title">Tăng trưởng GDP (QoQ)</div>
+                        <div class="card-val" id="stat-gdp-growth">0%</div>
                     </div>
                     <div class="card">
-                        <div class="card-title">Tổng Dân Số NPC</div>
-                        <div class="card-val" id="stat-pop">100 Người</div>
+                        <div class="card-title">Lạm phát (Inflation)</div>
+                        <div class="card-val" id="stat-inflation">0%</div>
                     </div>
                     <div class="card">
                         <div class="card-title">Tỷ lệ Thất nghiệp</div>
                         <div class="card-val" id="stat-unemployment">0%</div>
                     </div>
                     <div class="card">
-                        <div class="card-title">Lãi suất Ngân hàng</div>
-                        <div class="card-val" id="stat-interest">5%</div>
+                        <div class="card-title">Lương Trung Bình</div>
+                        <div class="card-val" id="stat-avg-wage">0 $</div>
+                    </div>
+                    <div class="card">
+                        <div class="card-title">Tổng Dân Số / Hộ gia đình</div>
+                        <div class="card-val" id="stat-pop">100 / 50</div>
+                    </div>
+                    <div class="card">
+                        <div class="card-title">Vốn Cá Nhân Bạn</div>
+                        <div class="card-val" id="stat-player-cash">100,000 $</div>
                     </div>
                 </div>
-                <h3>Nhật Ký Sự Kiện & Dòng Chảy Kinh Tế</h3>
+                <h3>Nhật Ký Dòng Chảy Kinh Tế & Giao Dịch Thị Trường</h3>
                 <br>
                 <div class="log-box" id="event-log"></div>
             </div>
@@ -128,29 +140,27 @@
             <!-- THỊ TRƯỜNG -->
             <div id="market" class="view">
                 <h2>Thị Trường Giao Dịch Đa Ngành (Commodity Exchange)</h2>
-                <p style="color: var(--muted); margin-top: 5px; margin-bottom: 15px;">Hệ thống cung - cầu tự trị định giá tự động cho toàn bộ các nhóm hàng hóa.</p>
+                <p style="color: var(--muted); margin-top: 5px; margin-bottom: 15px;">Khớp lệnh thực tế giữa Người mua (NPC/Doanh nghiệp) và Người bán (Doanh nghiệp/Nhà sản xuất).</p>
                 <table id="market-table">
                     <thead>
                         <tr>
-                            <th>Mã & Tên Hàng Hóa</th>
+                            <th>Hàng hóa</th>
                             <th>Nhóm</th>
-                            <th>Tổng Cung</th>
-                            <th>Tổng Cầu</th>
-                            <th>Giá Cơ Sở</th>
+                            <th>Tổng Cung Thật</th>
+                            <th>Tổng Cầu Thật</th>
+                            <th>Giá Sơ Sở</th>
                             <th>Giá Thị Trường</th>
-                            <th>Trạng thái</th>
+                            <th>Khối lượng giao dịch (24h)</th>
                         </tr>
                     </thead>
-                    <tbody id="market-tbody">
-                        <!-- Render bằng JS -->
-                    </tbody>
+                    <tbody id="market-tbody"></tbody>
                 </table>
             </div>
 
             <!-- DOANH NGHIỆP CỦA BẠN -->
             <div id="company" class="view">
                 <h2>Quản Lý Doanh Nghiệp (Business Management System)</h2>
-                <p style="color: var(--muted); margin-top: 5px; margin-bottom: 15px;">Thành lập và vận hành doanh nghiệp sản xuất thực tế bằng nguyên liệu, máy móc và công nhân.</p>
+                <p style="color: var(--muted); margin-top: 5px; margin-bottom: 15px;">Vận hành doanh nghiệp dựa trên chuỗi sản xuất thực tế, nguyên liệu, máy móc và công nhân.</p>
                 
                 <div id="company-create-panel" class="controls" style="margin-bottom: 20px;">
                     <h3>Thành Lập Doanh Nghiệp Mới</h3>
@@ -160,21 +170,19 @@
                             <input type="text" id="new-comp-name" value="Tập đoàn Alpha">
                         </div>
                         <div class="form-group">
-                            <label>Sản phẩm sản xuất</label>
+                            <label>Ngành sản xuất</label>
                             <select id="new-comp-product">
-                                <option value="food">Lương thực (Food)</option>
-                                <option value="water">Nước sạch (Water)</option>
-                                <option value="electricity">Điện năng (Electricity)</option>
-                                <option value="clothes">Quần áo (Clothes)</option>
-                                <option value="electronics">Đồ điện tử (Electronics)</option>
-                                <option value="metal">Kim loại (Metal)</option>
-                                <option value="wood">Gỗ (Wood)</option>
-                                <option value="oil">Dầu mỏ (Oil)</option>
+                                <option value="food">Lương thực (Food - Từ Grain + Labor)</option>
+                                <option value="clothes">Quần áo (Clothes - Từ Fabric + Chemicals)</option>
+                                <option value="electronics">Đồ điện tử (Electronics - Từ Metal + Chemicals)</option>
+                                <option value="furniture">Nội thất (Furniture - Từ Wood + Metal)</option>
+                                <option value="medicine">Y dược (Medicine)</option>
+                                <option value="transport">Vận tải (Transport)</option>
                             </select>
                         </div>
                         <div class="form-group">
                             <label>Vốn đầu tư ban đầu ($)</label>
-                            <input type="number" id="new-comp-capital" value="20000">
+                            <input type="number" id="new-comp-capital" value="50000">
                         </div>
                     </div>
                     <button onclick="PlayerCompany.foundCompany()">Thành Lập Doanh Nghiệp</button>
@@ -182,54 +190,35 @@
 
                 <div id="company-dash-panel" style="display: none;">
                     <div class="grid">
-                        <div class="card">
-                            <div class="card-title">Tên Doanh Nghiệp</div>
-                            <div class="card-val" id="pcomp-name" style="font-size: 1.2rem;">-</div>
-                        </div>
-                        <div class="card">
-                            <div class="card-title">Ngành / Sản phẩm</div>
-                            <div class="card-val" id="pcomp-product" style="font-size: 1.2rem;">-</div>
-                        </div>
-                        <div class="card">
-                            <div class="card-title">Quỹ Tiền Mặt Công Ty</div>
-                            <div class="card-val" id="pcomp-cash">0 $</div>
-                        </div>
-                        <div class="card">
-                            <div class="card-title">Tồn Kho Sản Phẩm</div>
-                            <div class="card-val" id="pcomp-inv">0</div>
-                        </div>
-                        <div class="card">
-                            <div class="card-title">Công Nhân Đang Thuê</div>
-                            <div class="card-val" id="pcomp-workers">0 người</div>
-                        </div>
-                        <div class="card">
-                            <div class="card-title">Lợi Nhuận Gần Nhất</div>
-                            <div class="card-val" id="pcomp-profit">0 $</div>
-                        </div>
+                        <div class="card"><div class="card-title">Tên Công Ty</div><div class="card-val" id="pcomp-name" style="font-size:1.1rem;">-</div></div>
+                        <div class="card"><div class="card-title">Tiền mặt</div><div class="card-val" id="pcomp-cash">0 $</div></div>
+                        <div class="card"><div class="card-title">Nguyên liệu tồn kho</div><div class="card-val" id="pcomp-mat-inv">0</div></div>
+                        <div class="card"><div class="card-title">Thành phẩm tồn kho</div><div class="card-val" id="pcomp-prod-inv">0</div></div>
+                        <div class="card"><div class="card-title">Nhân sự / Máy móc</div><div class="card-val" id="pcomp-workers">0 / 0</div></div>
+                        <div class="card"><div class="card-title">Lợi nhuận ròng (Gần nhất)</div><div class="card-val" id="pcomp-profit">0 $</div></div>
                     </div>
 
                     <div class="controls">
-                        <h3>Điều Hành & Chiến Lược Doanh Nghiệp</h3>
+                        <h3>Điều Hành Doanh Nghiệp</h3>
                         <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 15px; margin-top: 15px;">
                             <div class="form-group">
-                                <label>Mức lương trả công nhân ($/ngày)</label>
+                                <label>Mức lương trả nhân viên ($/ngày)</label>
                                 <input type="number" id="pcomp-wage-input" value="30">
-                                <button style="margin-top: 5px;" onclick="PlayerCompany.updateWage()">Cập nhật Lương</button>
+                                <button style="margin-top:5px;" onclick="PlayerCompany.updateWage()">Cập nhật Lương</button>
                             </div>
                             <div class="form-group">
-                                <label>Giá bán sản phẩm ra thị trường ($)</label>
-                                <input type="number" id="pcomp-price-input" value="15">
-                                <button style="margin-top: 5px;" onclick="PlayerCompany.updatePrice()">Cập nhật Giá bán</button>
+                                <label>Giá bán thành phẩm ($)</label>
+                                <input type="number" id="pcomp-price-input" value="25">
+                                <button style="margin-top:5px;" onclick="PlayerCompany.updatePrice()">Cập nhật Giá bán</button>
                             </div>
                             <div class="form-group">
-                                <label>Chi phí Marketing / ngày ($)</label>
-                                <input type="number" id="pcomp-mkt-input" value="100">
-                                <button style="margin-top: 5px;" onclick="PlayerCompany.updateMarketing()">Cập nhật Marketing</button>
+                                <label>Mua nguyên liệu số lượng</label>
+                                <input type="number" id="pcomp-buy-mat" value="50">
+                                <button style="margin-top:5px;" onclick="PlayerCompany.buyRawMaterials()">Mua Nguyên Liệu</button>
                             </div>
                         </div>
                         <div style="margin-top: 15px;">
-                            <button onclick="PlayerCompany.hireWorker()">Tuyển 1 Công nhân</button>
-                            <button class="secondary" onclick="PlayerCompany.fireWorker()">Sa thải 1 Công nhân</button>
+                            <button onclick="PlayerCompany.buyMachine()">Đầu tư 1 Máy móc (5,000$)</button>
                             <button class="secondary" onclick="PlayerCompany.injectCapital(10000)">Bơm vốn (+10,000$)</button>
                         </div>
                     </div>
@@ -239,77 +228,84 @@
             <!-- DOANH NGHIỆP NPC -->
             <div id="competitors" class="view">
                 <h2>Doanh Nghiệp Độc Lập Trong Nền Kinh Tế (NPC Companies)</h2>
-                <p style="color: var(--muted); margin-top: 5px; margin-bottom: 15px;">Các công ty tự trị cạnh tranh tuyển dụng, sản xuất và bán hàng trực tiếp trên thị trường.</p>
+                <p style="color: var(--muted); margin-top: 5px; margin-bottom: 15px;">Các công ty tự trị cạnh tranh nguyên liệu, tuyển dụng lao động và sản xuất kinh doanh theo chiến lược riêng.</p>
                 <table id="comp-table">
                     <thead>
                         <tr>
                             <th>Tên Công Ty</th>
                             <th>Ngành Sản Xuất</th>
                             <th>Tiền Mặt</th>
-                            <th>Công Nhân</th>
-                            <th>Tồn Kho</th>
+                            <th>Nhân sự</th>
+                            <th>Máy móc</th>
+                            <th>Thành phẩm tồn kho</th>
                             <th>Trạng Thái</th>
                         </tr>
                     </thead>
-                    <tbody id="comp-tbody">
-                        <!-- Render bằng JS -->
-                    </tbody>
+                    <tbody id="comp-tbody"></tbody>
+                </table>
+            </div>
+
+            <!-- THỊ TRƯỜNG LAO ĐỘNG -->
+            <div id="labor" class="view">
+                <h2>Thị Trường Lao Động & Việc Làm (Labor Market)</h2>
+                <p style="color: var(--muted); margin-top: 5px; margin-bottom: 15px;">Danh sách các công ty đang tuyển dụng và danh sách người lao động đang tìm việc hoặc làm việc.</p>
+                <div class="grid">
+                    <div class="card"><div class="card-title">Việc làm trống</div><div class="card-val" id="lab-openings">0</div></div>
+                    <div class="card"><div class="card-title">Lao động thất nghiệp</div><div class="card-val" id="lab-unemployed">0</div></div>
+                </div>
+                <h3>Danh sách Doanh nghiệp đang tuyển dụng</h3>
+                <table id="job-board-table">
+                    <thead>
+                        <tr><th>Công ty</th><th>Ngành</th><th>Lương đề xuất ($/ngày)</th><th>Yêu cầu kỹ năng</th><th>Hành động xin việc</th></tr>
+                    </thead>
+                    <tbody id="job-board-tbody"></tbody>
                 </table>
             </div>
 
             <!-- XÃ HỘI & DÂN CƯ -->
             <div id="npcs" class="view">
-                <h2>Hệ Thống Dân Cư & Xã Hội Tự Trị (Autonomous NPCs)</h2>
-                <p style="color: var(--muted); margin-top: 5px; margin-bottom: 15px;">Mỗi NPC có lý lịch nhân khẩu học, thu nhập, nhu cầu đa ngành và hành vi kinh tế độc lập.</p>
+                <h2>Hệ Thống Xã Hội & Hộ Gia Đình (Autonomous Households & NPCs)</h2>
+                <p style="color: var(--muted); margin-top: 5px; margin-bottom: 15px;">Click vào NPC để xem chi tiết lý lịch, tài chính, gia đình và nhu cầu tiêu dùng.</p>
                 <table id="npc-table">
                     <thead>
                         <tr>
-                            <th>ID & Tên</th>
-                            <th>Tuổi / Nghề</th>
-                            <th>Công ty làm việc</th>
+                            <th>Tên & Tuổi</th>
+                            <th>Hộ gia đình</th>
+                            <th>Nghề nghiệp</th>
                             <th>Tiền mặt</th>
-                            <th>Mức Đói</th>
-                            <th>Trạng thái hành vi</th>
+                            <th>Tiết kiệm</th>
+                            <th>Kỹ năng</th>
+                            <th>Hành động</th>
                         </tr>
                     </thead>
-                    <tbody id="npc-tbody">
-                        <!-- Render bằng JS -->
-                    </tbody>
+                    <tbody id="npc-tbody"></tbody>
                 </table>
             </div>
 
             <!-- NGÂN HÀNG & TÀI CHÍNH -->
             <div id="bank" class="view">
-                <h2>Hệ Thống Ngân Hàng & Tín Dụng (Banking System)</h2>
-                <p style="color: var(--muted); margin-top: 5px; margin-bottom: 15px;">Gửi tiết kiệm lấy lãi suất hoặc vay vốn kinh doanh từ Ngân Hàng Trung Ương.</p>
+                <h2>Hệ Thống Ngân Hàng Trung Ương & Tín Dụng (Banking System)</h2>
+                <p style="color: var(--muted); margin-top: 5px; margin-bottom: 15px;">Gửi tiết kiệm, vay vốn, quản lý điểm tín dụng và thế chấp tài sản.</p>
                 <div class="grid">
-                    <div class="card">
-                        <div class="card-title">Tiền Gửi Tiết Kiệm</div>
-                        <div class="card-val" id="bank-savings">0 $</div>
-                    </div>
-                    <div class="card">
-                        <div class="card-title">Khoản Vợ Nợ / Vay</div>
-                        <div class="card-val" id="bank-debt">0 $</div>
-                    </div>
-                    <div class="card">
-                        <div class="card-title">Lãi Suất Tiết Kiệm / Vay</div>
-                        <div class="card-val" id="bank-rate">5% / năm</div>
-                    </div>
+                    <div class="card"><div class="card-title">Tiền Gửi Tiết Kiệm Của Bạn</div><div class="card-val" id="bank-savings">0 $</div></div>
+                    <div class="card"><div class="card-title">Khoản Vợ Nợ / Vay</div><div class="card-val" id="bank-debt">0 $</div></div>
+                    <div class="card"><div class="card-title">Điểm Tín Dụng (Credit Score)</div><div class="card-val" id="bank-score">750</div></div>
+                    <div class="card"><div class="card-title">Lãi suất Tiết kiệm / Vay</div><div class="card-val" id="bank-rates">4% / 8%</div></div>
                 </div>
                 <div class="controls">
-                    <h3>Giao Dịch Tài Chính</h3>
+                    <h3>Giao Dịch Ngân Hàng</h3>
                     <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 15px; margin-top: 15px;">
                         <div class="form-group">
-                            <label>Số tiền gửi / rút tiết kiệm ($)</label>
+                            <label>Số tiền giao dịch ($)</label>
                             <input type="number" id="bank-amount" value="5000">
-                            <button style="margin-top: 5px;" onclick="BankSystem.deposit(Number(document.getElementById('bank-amount').value))">Gửi Tiết Kiệm</button>
-                            <button class="secondary" style="margin-top: 5px;" onclick="BankSystem.withdraw(Number(document.getElementById('bank-amount').value))">Rút Tiền</button>
+                            <button style="margin-top:5px;" onclick="BankSystem.deposit(Number(document.getElementById('bank-amount').value))">Gửi Tiết Kiệm</button>
+                            <button class="secondary" style="margin-top:5px;" onclick="BankSystem.withdraw(Number(document.getElementById('bank-amount').value))">Rút Tiền</button>
                         </div>
                         <div class="form-group">
-                            <label>Số tiền vay ngân hàng ($)</label>
+                            <label>Vay vốn ngân hàng ($)</label>
                             <input type="number" id="loan-amount" value="20000">
-                            <button style="margin-top: 5px;" onclick="BankSystem.takeLoan(Number(document.getElementById('loan-amount').value))">Vay Vốn</button>
-                            <button class="secondary" style="margin-top: 5px;" onclick="BankSystem.repayLoan(Number(document.getElementById('loan-amount').value))">Trả Nợ</button>
+                            <button style="margin-top:5px;" onclick="BankSystem.takeLoan(Number(document.getElementById('loan-amount').value))">Vay Vốn</button>
+                            <button class="secondary" style="margin-top:5px;" onclick="BankSystem.repayLoan(Number(document.getElementById('loan-amount').value))">Trả Nợ</button>
                         </div>
                     </div>
                 </div>
@@ -318,26 +314,37 @@
             <!-- SỰ KIỆN & VĨ MÔ -->
             <div id="events" class="view">
                 <h2>Trung Tâm Sự Kiện & Chính Sách Vĩ Mô (Event System)</h2>
-                <p style="color: var(--muted); margin-top: 5px; margin-bottom: 15px;">Các sự kiện ngẫu nhiên từ thiên tai, khủng hoảng đến đột biến thị trường ảnh hưởng trực tiếp đến mô phỏng.</p>
+                <p style="color: var(--muted); margin-top: 5px; margin-bottom: 15px;">Kích hoạt các sự kiện kinh tế tác động trực tiếp vào chuỗi cung ứng, lạm phát và thị trường lao động.</p>
                 <div class="controls" style="margin-bottom: 20px;">
-                    <h3>Kích Hoạt Sự Kiện Thủ Công</h3>
+                    <h3>Sự Kiện Thủ Công</h3>
                     <div style="margin-top: 10px;">
-                        <button onclick="EventSystem.triggerEvent('CRISIS')">Khủng Hoảng Kinh Tế</button>
-                        <button onclick="EventSystem.triggerEvent('BOOM')">Bùng Nổ Kinh Tế (Boom)</button>
                         <button onclick="EventSystem.triggerEvent('FAMINE')">Mất Mùa / Thiếu Lương Thực</button>
-                        <button onclick="EventSystem.triggerEvent('TECH')">Đột Phá Công Nghệ</button>
+                        <button onclick="EventSystem.triggerEvent('RATE_HIKE')">Tăng Lãi Suất (Central Bank)</button>
+                        <button onclick="EventSystem.triggerEvent('TECH_BOOM')">Đột Phá Công Nghệ</button>
+                        <button onclick="EventSystem.triggerEvent('CRISIS')">Khủng Hoảng Kinh Tế</button>
                     </div>
                 </div>
-                <h3>Lịch Sử Sự Kiện Kinh Tế</h3>
+                <h3>Lịch Sử Sự Kiện Vĩ Mô</h3>
                 <br>
                 <div class="log-box" id="macro-log"></div>
             </div>
         </div>
     </main>
 
+    <!-- NPC DETAIL MODAL -->
+    <div id="npc-modal" class="modal">
+        <div class="modal-content">
+            <h2 id="modal-npc-name">Hồ sơ NPC</h2>
+            <br>
+            <div id="modal-npc-body" style="font-size: 0.9rem; line-height: 1.6; color: var(--muted);"></div>
+            <br>
+            <button onclick="document.getElementById('npc-modal').style.display='none'">Đóng</button>
+        </div>
+    </div>
+
     <script>
         // ==========================================
-        // 1. TIME SYSTEM (1 giây thực = 1 giây game)
+        // 1. TIME SYSTEM
         // ==========================================
         const TimeSystem = {
             second: 0,
@@ -351,8 +358,6 @@
 
             tick() {
                 if (this.isPaused || this.speed === 0) return;
-                
-                // Tăng thời gian theo tốc độ (speed ticks mỗi giây thực tế)
                 this.second += this.speed;
                 while (this.second >= 60) {
                     this.second -= 60;
@@ -402,67 +407,106 @@
         };
 
         // ==========================================
-        // 2. COMMODITY & MARKET SYSTEM (Đa ngành)
+        // 2 & 3. COMMODITY & MARKET SYSTEM (Sổ lệnh & Phân tách tồn kho)
         // ==========================================
         const CommoditySystem = {
             commodities: {
-                food: { id: 'food', name: 'Lương thực (Food)', category: 'Nhu yếu phẩm', basePrice: 15, supply: 100, demand: 50, inventory: 100, unit: 'kg' },
-                water: { id: 'water', name: 'Nước sạch (Water)', category: 'Nhu yếu phẩm', basePrice: 5, supply: 200, demand: 150, inventory: 200, unit: 'lít' },
-                electricity: { id: 'electricity', name: 'Điện năng (Electricity)', category: 'Nhu yếu phẩm', basePrice: 8, supply: 150, demand: 120, inventory: 150, unit: 'kWh' },
-                fuel: { id: 'fuel', name: 'Năng lượng/Dầu (Fuel)', category: 'Nhu yếu phẩm', basePrice: 25, supply: 80, demand: 70, inventory: 80, unit: 'lít' },
+                grain: { id: 'grain', name: 'Lúa mì (Grain)', category: 'Nguyên liệu', basePrice: 10, unit: 'kg' },
+                meat: { id: 'meat', name: 'Thịt (Meat)', category: 'Nguyên liệu', basePrice: 20, unit: 'kg' },
+                metal: { id: 'metal', name: 'Kim loại (Metal)', category: 'Nguyên liệu', basePrice: 30, unit: 'kg' },
+                wood: { id: 'wood', name: 'Gỗ (Wood)', category: 'Nguyên liệu', basePrice: 15, unit: 'm3' },
+                oil: { id: 'oil', name: 'Dầu thô (Oil)', category: 'Nguyên liệu', basePrice: 35, unit: 'thùng' },
+                chemicals: { id: 'chemicals', name: 'Hóa chất (Chemicals)', category: 'Nguyên liệu', basePrice: 40, unit: 'lít' },
+                fabric: { id: 'fabric', name: 'Vải (Fabric)', category: 'Nguyên liệu', basePrice: 25, unit: 'mét' },
                 
-                clothes: { id: 'clothes', name: 'Quần áo (Clothes)', category: 'Hàng tiêu dùng', basePrice: 40, supply: 50, demand: 40, inventory: 50, unit: 'bộ' },
-                electronics: { id: 'electronics', name: 'Đồ điện tử (Electronics)', category: 'Hàng tiêu dùng', basePrice: 150, supply: 30, demand: 25, inventory: 30, unit: 'cái' },
-                furniture: { id: 'furniture', name: 'Nội thất (Furniture)', category: 'Hàng tiêu dùng', basePrice: 100, supply: 30, demand: 20, inventory: 30, unit: 'bộ' },
-                medicine: { id: 'medicine', name: 'Y dược (Medicine)', category: 'Hàng tiêu dùng', basePrice: 60, supply: 40, demand: 35, inventory: 40, unit: 'hộp' },
+                food: { id: 'food', name: 'Lương thực (Food)', category: 'Nhu yếu phẩm', basePrice: 15, unit: 'kg' },
+                water: { id: 'water', name: 'Nước sạch (Water)', category: 'Nhu yếu phẩm', basePrice: 5, unit: 'lít' },
+                electricity: { id: 'electricity', name: 'Điện năng (Electricity)', category: 'Nhu yếu phẩm', basePrice: 8, unit: 'kWh' },
+                fuel: { id: 'fuel', name: 'Năng lượng/Dầu (Fuel)', category: 'Nhu yếu phẩm', basePrice: 30, unit: 'lít' },
                 
-                metal: { id: 'metal', name: 'Kim loại (Metal)', category: 'Nguyên liệu', basePrice: 30, supply: 90, demand: 85, inventory: 90, unit: 'kg' },
-                wood: { id: 'wood', name: 'Gỗ (Wood)', category: 'Nguyên liệu', basePrice: 20, supply: 100, demand: 90, inventory: 100, unit: 'm3' },
-                oil: { id: 'oil', name: 'Dầu thô (Oil)', category: 'Nguyên liệu', basePrice: 35, supply: 80, demand: 75, inventory: 80, unit: 'thùng' },
-                chemicals: { id: 'chemicals', name: 'Hóa chất (Chemicals)', category: 'Nguyên liệu', basePrice: 45, supply: 60, demand: 55, inventory: 60, unit: 'lít' }
+                clothes: { id: 'clothes', name: 'Quần áo (Clothes)', category: 'Hàng tiêu dùng', basePrice: 50, unit: 'bộ' },
+                electronics: { id: 'electronics', name: 'Đồ điện tử (Electronics)', category: 'Hàng tiêu dùng', basePrice: 180, unit: 'cái' },
+                furniture: { id: 'furniture', name: 'Nội thất (Furniture)', category: 'Hàng tiêu dùng', basePrice: 120, unit: 'bộ' },
+                medicine: { id: 'medicine', name: 'Y dược (Medicine)', category: 'Hàng tiêu dùng', basePrice: 70, unit: 'hộp' },
+                housing: { id: 'housing', name: 'Nhà ở / Thuê nhà (Housing)', category: 'Bất động sản', basePrice: 200, unit: 'căn' },
+                transport: { id: 'transport', name: 'Dịch vụ Vận tải (Transport)', category: 'Dịch vụ', basePrice: 40, unit: 'chuyến' }
             },
 
             marketPrices: {},
+            marketStats: {}, // Lưu volume giao dịch 24h
 
             init() {
-                for (let key in this.commodities) {
-                    this.marketPrices[key] = this.commodities[key].basePrice;
+                for (let k in this.commodities) {
+                    this.marketPrices[k] = this.commodities[k].basePrice;
+                    this.marketStats[k] = { supply: 0, demand: 0, volume: 0 };
                 }
             },
 
-            updateMarkets() {
-                for (let key in this.commodities) {
-                    let com = this.commodities[key];
-                    // Cung cầu tự điều chỉnh giá
-                    if (com.supply > com.demand * 1.5) {
-                        this.marketPrices[key] = Math.max(Math.round(com.basePrice * 0.4), this.marketPrices[key] - 1);
-                    } else if (com.demand > com.supply) {
-                        this.marketPrices[key] += 1;
-                    } else {
-                        // Trôi dần về giá cơ sở
-                        if (this.marketPrices[key] > com.basePrice) this.marketPrices[key]--;
-                        else if (this.marketPrices[key] < com.basePrice) this.marketPrices[key]++;
+            // Khớp lệnh giao dịch thực tế có dòng tiền
+            executeTrade(buyer, seller, commodityId, quantity, price) {
+                let totalValue = quantity * price;
+                if (buyer.cash < totalValue) {
+                    quantity = Math.floor(buyer.cash / price);
+                    totalValue = quantity * price;
+                }
+                if (quantity <= 0) return 0;
+
+                // Kiểm tra người bán có đủ hàng không
+                let sellerInv = seller.inventory[commodityId] || 0;
+                if (sellerInv < quantity) {
+                    quantity = sellerInv;
+                    totalValue = quantity * price;
+                }
+                if (quantity <= 0) return 0;
+
+                // Chuyển tiền & hàng
+                buyer.cash -= totalValue;
+                seller.cash += totalValue;
+                
+                seller.inventory[commodityId] -= quantity;
+                if (!buyer.inventory) buyer.inventory = {};
+                buyer.inventory[commodityId] = (buyer.inventory[commodityId] || 0) + quantity;
+
+                // Thống kê GDP & Market
+                SimulationEngine.gdpToday += totalValue;
+                this.marketStats[commodityId].volume += quantity;
+
+                SimulationEngine.logTrade(`[Giao dịch]: ${buyer.name} mua ${quantity} ${this.commodities[commodityId].unit} ${this.commodities[commodityId].name} từ ${seller.name} với giá ${price}$/đơn vị (Tổng: ${totalValue}$)`);
+                return quantity;
+            },
+
+            updateMarketClearing() {
+                for (let k in this.commodities) {
+                    let st = this.marketStats[k];
+                    // Tự điều chỉnh giá theo cung cầu
+                    if (st.demand > st.supply * 1.2) {
+                        this.marketPrices[k] += 1;
+                    } else if (st.supply > st.demand * 1.5) {
+                        this.marketPrices[k] = Math.max(Math.round(this.commodities[k].basePrice * 0.3), this.marketPrices[k] - 1);
                     }
+                    // Reset volume tích lũy cho kỳ tiếp theo
+                    st.supply = 0;
+                    st.demand = 0;
                 }
             },
 
-            renderMarketTable() {
+            renderTable() {
                 const tbody = document.getElementById('market-tbody');
                 if (!tbody) return;
                 tbody.innerHTML = '';
-                for (let key in this.commodities) {
-                    let com = this.commodities[key];
-                    let price = this.marketPrices[key];
-                    let status = com.supply >= com.demand ? '<span class="badge badge-green">Đủ hàng</span>' : '<span class="badge badge-red">Thiếu hụt</span>';
+                for (let k in this.commodities) {
+                    let com = this.commodities[k];
+                    let price = this.marketPrices[k];
+                    let st = this.marketStats[k];
                     tbody.innerHTML += `
                         <tr>
                             <td><b>${com.name}</b></td>
                             <td>${com.category}</td>
-                            <td>${com.supply} ${com.unit}</td>
-                            <td>${com.demand} ${com.unit}</td>
+                            <td>${st.supply} ${com.unit}</td>
+                            <td>${st.demand} ${com.unit}</td>
                             <td>${com.basePrice} $</td>
-                            <td style="color: var(--accent); font-weight: bold;">${price} $</td>
-                            <td>${status}</td>
+                            <td style="color:var(--accent); font-weight:bold;">${price} $</td>
+                            <td>${st.volume} ${com.unit}</td>
                         </tr>
                     `;
                 }
@@ -471,309 +515,256 @@
         CommoditySystem.init();
 
         // ==========================================
-        // 3. PLAYER COMPANY SYSTEM
+        // 4. PRODUCTION SYSTEM (Chuỗi sản xuất chuẩn)
         // ==========================================
-        const PlayerCompany = {
+        const ProductionSystem = {
+            recipes: {
+                food: { inputs: { grain: 2 }, output: 'food', outputQty: 5, laborReq: 2, machineReq: 1 },
+                clothes: { inputs: { fabric: 2, chemicals: 1 }, output: 'clothes', outputQty: 3, laborReq: 3, machineReq: 1 },
+                electronics: { inputs: { metal: 2, chemicals: 1 }, output: 'electronics', outputQty: 2, laborReq: 4, machineReq: 2 },
+                furniture: { inputs: { wood: 3, metal: 1 }, output: 'furniture', outputQty: 2, laborReq: 3, machineReq: 1 },
+                medicine: { inputs: { chemicals: 3 }, output: 'medicine', outputQty: 4, laborReq: 4, machineReq: 2 },
+                transport: { inputs: { fuel: 2 }, output: 'transport', outputQty: 5, laborReq: 2, machineReq: 1 }
+            },
+
+            runProduction(company) {
+                let recipe = this.recipes[company.product];
+                if (!recipe) return;
+
+                // Kiểm tra nhân công
+                let availableLabor = company.workers.length;
+                let laborRatio = Math.min(1, availableLabor / recipe.laborReq);
+
+                // Kiểm tra máy móc
+                let machineRatio = Math.min(1, company.machines / recipe.machineReq);
+
+                // Kiểm tra nguyên liệu đầu vào
+                let maxBatches = 999;
+                for (let mat in recipe.inputs) {
+                    let required = recipe.inputs[mat];
+                    let inStock = company.inventory[mat] || 0;
+                    let batches = Math.floor(inStock / required);
+                    if (batches < maxBatches) maxBatches = batches;
+                }
+
+                if (maxBatches <= 0 || laborRatio <= 0 || machineRatio <= 0) {
+                    company.status = 'Thiếu nguyên liệu / nhân công / máy móc';
+                    return;
+                }
+
+                let productionMultiplier = Math.min(maxBatches, Math.floor(availableLabor / recipe.laborReq), Math.floor(company.machines / recipe.machineReq));
+                productionMultiplier = Math.max(1, productionMultiplier);
+
+                // Tiêu thụ nguyên liệu
+                for (let mat in recipe.inputs) {
+                    company.inventory[mat] -= recipe.inputs[mat] * productionMultiplier;
+                }
+
+                // Sản xuất thành phẩm
+                let producedQty = recipe.outputQty * productionMultiplier;
+                company.inventory[recipe.output] = (company.inventory[recipe.output] || 0) + producedQty;
+                company.status = `Đang sản xuất ổn định (${producedQty} ${recipe.output})`;
+                SimulationEngine.log(`[Sản xuất]: Công ty ${company.name} sản xuất thành công ${producedQty} ${recipe.output}.`);
+            }
+        };
+
+        // ==========================================
+        // 5 & 13. DOANH NGHIỆP NGƯỜI CHƠI & NPC COMPANIES
+        // ==========================================
+        let playerCompany = {
             hasCompany: false,
             name: '',
             product: 'food',
-            cash: 20000,
-            inventory: 0,
-            workers: 3,
+            cash: 50000,
+            inventory: {},
+            workers: [],
+            machines: 2,
             wage: 30,
-            price: 15,
-            marketing: 50,
+            price: 25,
             lastProfit: 0,
+            status: 'Chưa thành lập'
+        };
 
+        let npcCompanies = [];
+        function initNpcCompanies() {
+            let products = ['food', 'clothes', 'electronics', 'furniture'];
+            let names = ['VinaFood Corp', 'Pacific Textile', 'CyberTech Global', 'HomeStyle Furniture'];
+            for (let i = 0; i < 4; i++) {
+                npcCompanies.push({
+                    id: i + 1,
+                    name: names[i],
+                    product: products[i],
+                    cash: 80000,
+                    inventory: { grain: 50, fabric: 50, metal: 50, wood: 50, chemicals: 50 },
+                    workers: [],
+                    machines: 3,
+                    wage: 35,
+                    price: CommoditySystem.commodities[products[i]].basePrice * 1.2,
+                    lastProfit: 0,
+                    status: 'Hoạt động'
+                });
+            }
+        }
+        initNpcCompanies();
+
+        const PlayerCompany = {
             foundCompany() {
-                const nameInput = document.getElementById('new-comp-name').value.trim();
-                const prodInput = document.getElementById('new-comp-product').value;
-                const capInput = Number(document.getElementById('new-comp-capital').value);
+                const name = document.getElementById('new-comp-name').value.trim();
+                const product = document.getElementById('new-comp-product').value;
+                const capital = Number(document.getElementById('new-comp-capital').value);
 
-                if (!nameInput) {
-                    alert("Vui lòng nhập tên công ty!");
+                if (player.cash < capital) {
+                    alert("Bạn không đủ tiền cá nhân để thành lập doanh nghiệp!");
                     return;
                 }
-                if (player.cash < capInput) {
-                    alert("Bạn không đủ vốn tiền mặt để thành lập!");
-                    return;
-                }
-
-                player.cash -= capInput;
-                this.hasCompany = true;
-                this.name = nameInput;
-                this.product = prodInput;
-                this.cash = capInput;
-                this.inventory = 0;
-                this.workers = 3;
+                player.cash -= capital;
+                playerCompany = {
+                    hasCompany: true,
+                    name: name,
+                    product: product,
+                    cash: capital,
+                    inventory: { grain: 100, fabric: 100, metal: 100, wood: 100, chemicals: 100 },
+                    workers: [],
+                    machines: 3,
+                    wage: 30,
+                    price: CommoditySystem.commodities[product].basePrice * 1.2,
+                    lastProfit: 0,
+                    status: 'Hoạt động'
+                };
 
                 document.getElementById('company-create-panel').style.display = 'none';
                 document.getElementById('company-dash-panel').style.display = 'block';
-
-                document.getElementById('pcomp-name').innerText = this.name;
-                document.getElementById('pcomp-product').innerText = CommoditySystem.commodities[this.product].name;
-
-                SimulationEngine.log(`[Doanh nghiệp]: Bạn đã thành lập công ty "${this.name}" sản xuất ${CommoditySystem.commodities[this.product].name}!`);
+                document.getElementById('pcomp-name').innerText = name;
+                SimulationEngine.log(`[Doanh nghiệp]: Bạn đã thành lập công ty "${name}" thành công!`);
                 updateUI();
             },
 
             updateWage() {
-                this.wage = Number(document.getElementById('pcomp-wage-input').value);
-                SimulationEngine.log(`[Doanh nghiệp]: Đã cập nhật lương công nhân thành ${this.wage}$/ngày.`);
+                playerCompany.wage = Number(document.getElementById('pcomp-wage-input').value);
+                SimulationEngine.log(`[Doanh nghiệp]: Cập nhật lương nhân viên thành ${playerCompany.wage}$/ngày.`);
             },
 
             updatePrice() {
-                this.price = Number(document.getElementById('pcomp-price-input').value);
-                SimulationEngine.log(`[Doanh nghiệp]: Đã cập nhật giá bán sản phẩm thành ${this.price}$.`);
+                playerCompany.price = Number(document.getElementById('pcomp-price-input').value);
+                SimulationEngine.log(`[Doanh nghiệp]: Cập nhật giá bán sản phẩm thành ${playerCompany.price}$.`);
             },
 
-            updateMarketing() {
-                this.marketing = Number(document.getElementById('pcomp-mkt-input').value);
-                SimulationEngine.log(`[Doanh nghiệp]: Đã cập nhật chi phí marketing thành ${this.marketing}$/ngày.`);
-            },
+            buyRawMaterials() {
+                let qty = Number(document.getElementById('pcomp-buy-mat').value);
+                let recipe = ProductionSystem.recipes[playerCompany.product];
+                if (!recipe) return;
+                let matKey = Object.keys(recipe.inputs)[0];
+                let cost = qty * CommoditySystem.marketPrices[matKey];
 
-            hireWorker() {
-                let unemployed = npcs.find(n => n.employer === null);
-                if (unemployed && this.cash >= this.wage) {
-                    unemployed.employer = 'player';
-                    unemployed.wage = this.wage;
-                    this.workers++;
-                    SimulationEngine.log(`[Doanh nghiệp]: Đã tuyển thêm NPC #${unemployed.id} (${unemployed.name}) vào làm việc.`);
+                if (playerCompany.cash >= cost) {
+                    playerCompany.cash -= cost;
+                    playerCompany.inventory[matKey] = (playerCompany.inventory[matKey] || 0) + qty;
+                    SimulationEngine.log(`[Doanh nghiệp]: Mua thành công ${qty} nguyên liệu ${matKey} với giá ${cost}$.`);
                     updateUI();
                 } else {
-                    alert("Không có lao động thất nghiệp hoặc không đủ tiền trả lương!");
+                    alert("Công ty không đủ tiền mặt mua nguyên liệu!");
                 }
             },
 
-            fireWorker() {
-                let worker = npcs.find(n => n.employer === 'player');
-                if (worker) {
-                    worker.employer = null;
-                    worker.wage = 0;
-                    this.workers = Math.max(0, this.workers - 1);
-                    SimulationEngine.log(`[Doanh nghiệp]: Đã sa thải NPC #${worker.id}.`);
+            buyMachine() {
+                let cost = 5000;
+                if (playerCompany.cash >= cost) {
+                    playerCompany.cash -= cost;
+                    playerCompany.machines += 1;
+                    SimulationEngine.log(`[Doanh nghiệp]: Đầu tư thêm 1 máy móc (Tổng: ${playerCompany.machines}).`);
                     updateUI();
+                } else {
+                    alert("Công ty không đủ tiền mặt mua máy móc!");
                 }
             },
 
             injectCapital(amount) {
                 if (player.cash >= amount) {
                     player.cash -= amount;
-                    this.cash += amount;
-                    SimulationEngine.log(`[Doanh nghiệp]: Đã bơm ${amount}$ vốn từ cá nhân vào công ty.`);
+                    playerCompany.cash += amount;
+                    SimulationEngine.log(`[Doanh nghiệp]: Bơm vốn ${amount}$ vào công ty.`);
                     updateUI();
-                } else {
-                    alert("Bạn không đủ tiền cá nhân!");
                 }
-            },
-
-            produce() {
-                if (!this.hasCompany) return;
-                // Sản lượng phụ thuộc số công nhân
-                let produced = this.workers * 10;
-                this.inventory += produced;
-                CommoditySystem.commodities[this.product].supply += produced;
-                
-                // Đem hàng ra chợ bán theo giá công ty đặt
-                SimulationEngine.log(`[Doanh nghiệp]: Công nhân sản xuất được ${produced} ${CommoditySystem.commodities[this.product].unit} ${CommoditySystem.commodities[this.product].name}.`);
-            },
-
-            dailyCycle() {
-                if (!this.hasCompany) return;
-                let totalPayroll = this.workers * this.wage;
-                let totalCost = totalPayroll + this.marketing;
-                
-                this.cash -= totalCost;
-                
-                // Trả lương cho NPC
-                npcs.forEach(n => {
-                    if (n.employer === 'player') {
-                        n.cash += this.wage;
-                    }
-                });
-
-                // Doanh thu từ bán hàng tồn kho dựa trên giá bán & nhu cầu thị trường
-                let com = CommoditySystem.commodities[this.product];
-                let unitsSold = Math.min(this.inventory, Math.floor(com.demand / (1 + (npcCompanies.length + 1))));
-                let revenue = unitsSold * this.price;
-                
-                this.inventory -= unitsSold;
-                com.supply = Math.max(0, com.supply - unitsSold);
-                this.cash += revenue;
-
-                this.lastProfit = revenue - totalCost;
-                player.cash += this.lastProfit; // Lợi nhuận về ví chủ doanh nghiệp
-
-                SimulationEngine.log(`[Báo cáo Doanh nghiệp]: Doanh thu: ${revenue}$ | Chi phí: ${totalCost}$ | Lợi nhuận: ${this.lastProfit}$`);
             }
         };
 
         // ==========================================
-        // 4. NPC COMPANIES (Doanh nghiệp NPC)
-        // ==========================================
-        let npcCompanies = [];
-        function initNpcCompanies() {
-            let keys = Object.keys(CommoditySystem.commodities);
-            for (let i = 0; i < 4; i++) {
-                let prodKey = keys[i % keys.length];
-                npcCompanies.push({
-                    id: i + 1,
-                    name: `Công ty CP ${['Global', 'Vina', 'Pacific', 'Star'][i]} ${CommoditySystem.commodities[prodKey].name.split(' ')[0]}`,
-                    product: prodKey,
-                    cash: 50000,
-                    workers: 5,
-                    wage: 25,
-                    price: CommoditySystem.commodities[prodKey].basePrice,
-                    inventory: 50,
-                    status: 'Hoạt động ổn định'
-                });
-            }
-        }
-        initNpcCompanies();
-
-        function updateNpcCompanies() {
-            npcCompanies.forEach(comp => {
-                let com = CommoditySystem.commodities[comp.product];
-                let payroll = comp.workers * comp.wage;
-                if (comp.cash >= payroll) {
-                    comp.cash -= payroll;
-                    // Sản xuất
-                    let prod = comp.workers * 8;
-                    comp.inventory += prod;
-                    com.supply += prod;
-
-                    // Bán hàng
-                    let sold = Math.min(comp.inventory, 25);
-                    let rev = sold * comp.price;
-                    comp.inventory -= sold;
-                    com.supply = Math.max(0, com.supply - sold);
-                    comp.cash += (rev - payroll);
-                    comp.status = 'Hoạt động có lãi';
-                } else {
-                    comp.status = 'Gặp khó khăn tài chính';
-                }
-            });
-        }
-
-        function renderNpcCompanies() {
-            const tbody = document.getElementById('comp-tbody');
-            if (!tbody) return;
-            tbody.innerHTML = '';
-            npcCompanies.forEach(comp => {
-                tbody.innerHTML += `
-                    <tr>
-                        <td><b>${comp.name}</b></td>
-                        <td>${CommoditySystem.commodities[comp.product].name}</td>
-                        <td>${comp.cash.toLocaleString()} $</td>
-                        <td>${comp.workers} người</td>
-                        <td>${comp.inventory}</td>
-                        <td><span class="badge badge-green">${comp.status}</span></td>
-                    </tr>
-                `;
-            });
-        }
-
-        // ==========================================
-        // 5. NPC AUTONOMOUS SYSTEM
+        // 6 & 7. THỊ TRƯỜNG LAO ĐỘNG & NPC SYSTEM HOÀN CHỈNH
         // ==========================================
         let npcs = [];
-        let player = { cash: 100000, savings: 0, debt: 0 };
+        let households = [];
+        let player = { cash: 100000, savings: 0, debt: 0, creditScore: 750 };
 
-        function initNpcs() {
-            let names = ['An', 'Bình', 'Cường', 'Dung', 'Hà', 'Hùng', 'Khoa', 'Linh', 'Minh', 'Nam', 'Phúc', 'Quân', 'Sơn', 'Thảo', 'Trang', 'Tú', 'Vân', 'Việt', 'Yến', 'Đức'];
+        function initSociety() {
+            let firstNames = ['An', 'Bình', 'Cường', 'Dung', 'Hà', 'Hùng', 'Khoa', 'Linh', 'Minh', 'Nam', 'Phúc', 'Quân', 'Sơn', 'Thảo', 'Trang'];
             for (let i = 1; i <= 100; i++) {
-                npcs.push({
+                let npc = {
                     id: i,
-                    name: `${names[i % names.length]} #${i}`,
+                    name: `${firstNames[i % firstNames.length]} #${i}`,
                     age: Math.floor(Math.random() * 45) + 18,
                     gender: i % 2 === 0 ? 'Nam' : 'Nữ',
-                    profession: i % 3 === 0 ? 'Công nhân' : (i % 3 === 1 ? 'Nhân viên' : 'Lao động tự do'),
-                    employer: i % 2 === 0 ? 'player' : null,
-                    wage: 25,
-                    cash: Math.floor(Math.random() * 3000) + 1000,
-                    savings: Math.floor(Math.random() * 5000),
+                    educationLevel: Math.floor(Math.random() * 3) + 1, // 1: Sơ cấp, 2: Trung cấp, 3: Đại học
+                    skills: Math.floor(Math.random() * 50) + 20,
+                    occupation: 'Thất nghiệp',
+                    employer: null,
+                    wage: 0,
+                    householdId: Math.ceil(i / 2), // 2 NPC / hộ gia đình
+                    cash: Math.floor(Math.random() * 2000) + 1000,
+                    savings: Math.floor(Math.random() * 3000),
                     debt: 0,
-                    hunger: Math.floor(Math.random() * 30),
-                    needs: {
-                        food: Math.floor(Math.random() * 50) + 20,
-                        water: Math.floor(Math.random() * 50) + 20,
-                        electricity: Math.floor(Math.random() * 50) + 20,
-                        clothes: Math.floor(Math.random() * 30)
-                    },
-                    status: 'Bình thường'
+                    needs: { food: 50, water: 50, housing: 50, electricity: 50 },
+                    personality: { riskTolerance: Math.random(), priceSensitivity: Math.random() },
+                    status: 'Thất nghiệp'
+                };
+                npcs.push(npc);
+            }
+
+            for (let h = 1; h <= 50; h++) {
+                households.push({
+                    id: h,
+                    members: [2*h - 1, 2*h],
+                    savings: 5000,
+                    debt: 0,
+                    housingType: 'Thuê nhà'
                 });
             }
         }
-        initNpcs();
+        initSociety();
 
-        function updateNpcsHourly() {
-            let totalDemand = { food: 0, water: 0, electricity: 0, clothes: 0 };
-
+        function updateLaborMarket() {
+            // NPC thất nghiệp tìm việc
             npcs.forEach(npc => {
-                npc.hunger += 1;
-                // Nhu cầu tiêu dùng hàng giờ
-                for (let key in npc.needs) {
-                    npc.needs[key] += 2;
-                    totalDemand[key] += Math.floor(npc.needs[key] / 20);
+                if (!npc.employer) {
+                    // Tìm công ty có trả lương cao nhất
+                    let allComps = [...npcCompanies];
+                    if (playerCompany.hasCompany) allComps.push(playerCompany);
 
-                    // Nếu nhu cầu cao và đủ tiền -> Mua hàng trên chợ
-                    if (npc.needs[key] > 40 && npc.cash >= CommoditySystem.marketPrices[key]) {
-                        let price = CommoditySystem.marketPrices[key];
-                        let com = CommoditySystem.commodities[key];
-                        if (com && com.supply > 0) {
-                            com.supply -= 1;
-                            npc.cash -= price;
-                            npc.needs[key] = 0;
-                            npc.status = `Đã mua ${com.name}`;
-                        } else {
-                            npc.status = `Cần ${com ? com.name : key} nhưng hết hàng`;
+                    let bestComp = null;
+                    let maxWage = 0;
+                    allComps.forEach(comp => {
+                        if (comp.wage > maxWage) {
+                            maxWage = comp.wage;
+                            bestComp = comp;
                         }
+                    });
+
+                    if (bestComp && Math.random() < 0.4) {
+                        bestComp.workers.push(npc);
+                        npc.employer = bestComp.name;
+                        npc.wage = bestComp.wage;
+                        npc.occupation = 'Nhân viên sản xuất';
+                        npc.status = 'Đã nhận việc';
                     }
                 }
-
-                // AI tìm việc nếu thất nghiệp
-                if (!npc.employer && Math.random() < 0.3) {
-                    let comp = npcCompanies[Math.floor(Math.random() * npcCompanies.length)];
-                    if (comp) {
-                        npc.employer = comp.name;
-                        npc.wage = comp.wage;
-                        comp.workers++;
-                        npc.status = 'Đã tìm được việc làm';
-                    }
-                }
-            });
-
-            // Cập nhật tổng cầu vào Commodity System
-            for (let key in totalDemand) {
-                if (CommoditySystem.commodities[key]) {
-                    CommoditySystem.commodities[key].demand = totalDemand[key];
-                }
-            }
-        }
-
-        function renderNpcs() {
-            const tbody = document.getElementById('npc-tbody');
-            if (!tbody) return;
-            tbody.innerHTML = '';
-            npcs.slice(0, 20).forEach(n => {
-                tbody.innerHTML += `
-                    <tr>
-                        <td><b>${n.name}</b></td>
-                        <td>${n.age} tuổi (${n.profession})</td>
-                        <td>${n.employer ? n.employer : '<span style="color:var(--red)">Thất nghiệp</span>'}</td>
-                        <td>${n.cash.toLocaleString()} $</td>
-                        <td>${n.hunger}/100</td>
-                        <td>${n.status}</td>
-                    </tr>
-                `;
             });
         }
 
         // ==========================================
-        // 6. BANK SYSTEM
+        // 10. HỆ THỐNG TÀI CHÍNH NGÂN HÀNG
         // ==========================================
         const BankSystem = {
-            interestRate: 0.05,
+            interestRateSavings: 0.04,
+            interestRateLoan: 0.08,
 
             deposit(amount) {
                 if (player.cash >= amount && amount > 0) {
@@ -781,27 +772,23 @@
                     player.savings += amount;
                     SimulationEngine.log(`[Ngân hàng]: Gửi tiết kiệm thành công ${amount}$.`);
                     updateUI();
-                } else {
-                    alert("Không đủ tiền mặt hoặc số tiền không hợp lệ!");
-                }
+                } else alert("Số dư không đủ!");
             },
 
             withdraw(amount) {
                 if (player.savings >= amount && amount > 0) {
                     player.savings -= amount;
                     player.cash += amount;
-                    SimulationEngine.log(`[Ngân hàng]: Rút tiết kiệm thành công ${amount}$.`);
+                    SimulationEngine.log(`[Ngân hàng]: Rút tiết kiệm ${amount}$.`);
                     updateUI();
-                } else {
-                    alert("Số dư tiết kiệm không đủ!");
-                }
+                } else alert("Số dư tiết kiệm không đủ!");
             },
 
             takeLoan(amount) {
                 if (amount > 0) {
                     player.cash += amount;
-                    player.debt += Math.round(amount * (1 + this.interestRate));
-                    SimulationEngine.log(`[Ngân hàng]: Vay vốn thành công ${amount}$ (Tổng nợ gốc + lãi: ${player.debt}$).`);
+                    player.debt += Math.round(amount * (1 + this.interestRateLoan));
+                    SimulationEngine.log(`[Ngân hàng]: Vay vốn ${amount}$ (Tổng nợ: ${player.debt}$).`);
                     updateUI();
                 }
             },
@@ -810,61 +797,48 @@
                 if (player.cash >= amount && player.debt >= amount && amount > 0) {
                     player.cash -= amount;
                     player.debt -= amount;
-                    SimulationEngine.log(`[Ngân hàng]: Đã trả bớt ${amount}$ tiền nợ.`);
+                    SimulationEngine.log(`[Ngân hàng]: Đã trả ${amount}$ tiền nợ.`);
                     updateUI();
-                } else {
-                    alert("Không đủ tiền mặt hoặc số tiền trả vượt quá nợ!");
-                }
+                } else alert("Không đủ tiền mặt hoặc số tiền trả vượt mức nợ!");
             },
 
             dailyInterest() {
-                // Lãi suất tiết kiệm hằng ngày cho người chơi và NPC
-                player.savings += Math.round(player.savings * (this.interestRate / 365));
-                npcs.forEach(n => {
-                    if (n.savings > 0) n.savings += Math.round(n.savings * (this.interestRate / 365));
-                });
+                player.savings += Math.round(player.savings * (this.interestRateSavings / 365));
+                if (player.debt > 0) player.debt += Math.round(player.debt * (this.interestRateLoan / 365));
             }
         };
 
         // ==========================================
-        // 7. EVENT SYSTEM (Sự kiện vĩ mô)
+        // 12. EVENT SYSTEM
         // ==========================================
         const EventSystem = {
-            events: [
-                { id: 'CRISIS', name: 'Khủng hoảng tài chính', desc: 'Thị trường sụt giảm mạnh, sức mua giảm sút.', effect: () => {
-                    for(let k in CommoditySystem.commodities) CommoditySystem.commodities[k].demand = Math.round(CommoditySystem.commodities[k].demand * 0.7);
-                }},
-                { id: 'BOOM', name: 'Bùng nổ kinh tế', desc: 'Nhu cầu tiêu dùng tăng vọt trên toàn thị trường.', effect: () => {
-                    for(let k in CommoditySystem.commodities) CommoditySystem.commodities[k].demand = Math.round(CommoditySystem.commodities[k].demand * 1.4);
-                }},
-                { id: 'FAMINE', name: 'Thiếu hụt lương thực', desc: 'Nguồn cung lương thực sụt giảm nghiêm trọng do thiên tai.', effect: () => {
-                    CommoditySystem.commodities.food.supply = Math.max(10, CommoditySystem.commodities.food.supply - 50);
-                }},
-                { id: 'TECH', name: 'Đột phá công nghệ', desc: 'Năng suất lao động toàn xã hội tăng 20%.', effect: () => {
-                    npcCompanies.forEach(c => c.workers += 2);
-                }}
-            ],
-
             triggerEvent(id) {
-                let ev = this.events.find(e => e.id === id);
-                if (!ev) {
-                    ev = this.events[Math.floor(Math.random() * this.events.length)];
+                let msg = "";
+                if (id === 'FAMINE') {
+                    CommoditySystem.marketPrices['grain'] *= 1.5;
+                    msg = "SỰ KIỆN: Mất mùa toàn quốc! Giá lúa mì tăng vọt 50%.";
+                } else if (id === 'RATE_HIKE') {
+                    BankSystem.interestRateLoan += 0.03;
+                    msg = "SỰ KIỆN: Ngân hàng Trung ương tăng lãi suất cho vay lên " + (BankSystem.interestRateLoan*100) + "%.";
+                } else if (id === 'TECH_BOOM') {
+                    msg = "SỰ KIỆN: Đột phá công nghệ! Năng suất sản xuất toàn xã hội tăng.";
+                } else if (id === 'CRISIS') {
+                    for(let k in CommoditySystem.marketPrices) CommoditySystem.marketPrices[k] *= 0.8;
+                    msg = "SỰ KIỆN: Khủng hoảng kinh tế! Sức mua và giá cả sụt giảm.";
                 }
-                ev.effect();
-                let msg = `[SỰ KIỆN VĨ MÔ] ${ev.name}: ${ev.desc}`;
                 SimulationEngine.log(msg);
                 const macroLog = document.getElementById('macro-log');
-                if (macroLog) {
-                    macroLog.innerHTML = `[Ngày ${TimeSystem.day}]: ${msg}<br>` + macroLog.innerHTML;
-                }
+                if (macroLog) macroLog.innerHTML = `[Ngày ${TimeSystem.day}]: ${msg}<br>` + macroLog.innerHTML;
             }
         };
 
         // ==========================================
-        // 8. SIMULATION ENGINE (Vòng lặp chính kết nối toàn hệ thống)
+        // 11 & 17. SIMULATION ENGINE & VÒNG LẶP CHÍNH
         // ==========================================
         const SimulationEngine = {
             gdpToday: 0,
+            gdpHistory: [],
+            yesterdayGdp: 0,
 
             log(msg) {
                 const box = document.getElementById('event-log');
@@ -872,96 +846,217 @@
                 box.innerHTML = `[Năm ${TimeSystem.year} T${TimeSystem.month} N${TimeSystem.day} - ${TimeSystem.hour}:00]: ${msg}<br>` + box.innerHTML;
             },
 
-            onMinutePass() {
-                // Cập nhật phụ theo phút nếu cần
+            logTrade(msg) {
+                const box = document.getElementById('event-log');
+                if (!box) return;
+                box.innerHTML = `<span style="color:var(--green)">[Trade]: ${msg}</span><br>` + box.innerHTML;
             },
 
+            onMinutePass() {},
+
             onHourPass() {
-                CommoditySystem.updateMarkets();
-                updateNpcsHourly();
-                if (PlayerCompany.hasCompany) {
-                    PlayerCompany.produce();
+                CommoditySystem.updateMarketClearing();
+                updateLaborMarket();
+
+                // 1. Doanh nghiệp NPC sản xuất & bán hàng
+                npcCompanies.forEach(comp => {
+                    ProductionSystem.runProduction(comp);
+                    // Bán hàng ra thị trường
+                    let prodKey = ProductionSystem.recipes[comp.product] ? ProductionSystem.recipes[comp.product].output : null;
+                    if (prodKey && comp.inventory[prodKey] > 0) {
+                        CommoditySystem.marketStats[prodKey].supply += comp.inventory[prodKey];
+                        // NPC mua hàng
+                        npcs.forEach(npc => {
+                            if (npc.cash >= comp.price && comp.inventory[prodKey] > 0) {
+                                CommoditySystem.executeTrade(npc, comp, prodKey, 1, comp.price);
+                            }
+                        });
+                    }
+                });
+
+                // 2. Doanh nghiệp người chơi sản xuất & bán hàng
+                if (playerCompany.hasCompany) {
+                    ProductionSystem.runProduction(playerCompany);
+                    let prodKey = ProductionSystem.recipes[playerCompany.product] ? ProductionSystem.recipes[playerCompany.product].output : null;
+                    if (prodKey && playerCompany.inventory[prodKey] > 0) {
+                        CommoditySystem.marketStats[prodKey].supply += playerCompany.inventory[prodKey];
+                        npcs.forEach(npc => {
+                            if (npc.cash >= playerCompany.price && playerCompany.inventory[prodKey] > 0) {
+                                CommoditySystem.executeTrade(npc, playerCompany, prodKey, 1, playerCompany.price);
+                            }
+                        });
+                    }
                 }
-                updateNpcCompanies();
             },
 
             onDayPass() {
-                this.log(`--- KẾT THÚC NGÀY ${TimeSystem.day} --- Tổng GDP ngày: ${this.gdpToday}$`);
-                if (PlayerCompany.hasCompany) {
-                    PlayerCompany.dailyCycle();
-                }
+                // Trả lương nhân viên hàng ngày
+                let totalPayroll = 0;
+                [...npcCompanies, playerCompany].forEach(comp => {
+                    if (!comp.hasCompany && comp.hasCompany !== undefined && !comp.name) return;
+                    if (comp.workers && comp.workers.length > 0) {
+                        let payroll = comp.workers.length * comp.wage;
+                        if (comp.cash >= payroll) {
+                            comp.cash -= payroll;
+                            comp.workers.forEach(w => {
+                                w.cash += comp.wage;
+                                totalPayroll += comp.wage;
+                            });
+                        }
+                    }
+                });
+
                 BankSystem.dailyInterest();
-
-                // Sự kiện ngẫu nhiên 10% mỗi ngày
-                if (Math.random() < 0.1) {
-                    EventSystem.triggerEvent();
-                }
-
+                this.gdpHistory.push(this.gdpToday);
+                this.yesterdayGdp = this.gdpToday;
                 this.gdpToday = 0;
             },
 
-            onMonthPass() {
-                this.log(`--- KẾT THÚC THÁNG ${TimeSystem.month} NĂM ${TimeSystem.year} ---`);
-            }
+            onMonthPass() {}
         };
 
-        // Tick Interval 1 giây thực = 1 giây game (với tốc độ 1x)
         setInterval(() => {
             TimeSystem.tick();
             updateUI();
         }, 1000);
 
         // ==========================================
-        // 9. UI MANAGER & NAVIGATION
+        // 16. UI MANAGER & RENDER
         // ==========================================
         function switchTab(id, e) {
             document.querySelectorAll('.view').forEach(v => v.classList.remove('active'));
             document.querySelectorAll('.menu li').forEach(l => l.classList.remove('active'));
             document.getElementById(id).classList.add('active');
             if (e && e.currentTarget) e.currentTarget.classList.add('active');
-            
-            if (id === 'market') CommoditySystem.renderMarketTable();
+
+            if (id === 'market') CommoditySystem.renderTable();
             if (id === 'npcs') renderNpcs();
-            if (id === 'competitors') renderNpcCompanies();
+            if (id === 'competitors') renderNpcCompaniesUI();
+            if (id === 'labor') renderLaborMarketUI();
         }
 
         function updateUI() {
-            // Tính tổng tiền mặt xã hội M2
-            let totalM2 = player.cash + player.savings + npcs.reduce((sum, n) => sum + n.cash + n.savings, 0);
-            if (PlayerCompany.hasCompany) totalM2 += PlayerCompany.cash;
+            let totalM2 = player.cash + player.savings + npcs.reduce((s, n) => s + n.cash + n.savings, 0);
+            if (playerCompany.hasCompany) totalM2 += playerCompany.cash;
             npcCompanies.forEach(c => totalM2 += c.cash);
 
             document.getElementById('stat-m2').innerText = totalM2.toLocaleString() + ' $';
             document.getElementById('stat-gdp').innerText = SimulationEngine.gdpToday.toLocaleString() + ' $';
             document.getElementById('stat-player-cash').innerText = player.cash.toLocaleString() + ' $';
-            document.getElementById('stat-pop').innerText = npcs.length + ' Người';
+            
+            let growth = SimulationEngine.yesterdayGdp > 0 ? Math.round(((SimulationEngine.gdpToday - SimulationEngine.yesterdayGdp) / SimulationEngine.yesterdayGdp) * 100) : 0;
+            document.getElementById('stat-gdp-growth').innerText = growth + '%';
 
             let unemployedCount = npcs.filter(n => !n.employer).length;
-            let unemploymentRate = Math.round((unemployedCount / npcs.length) * 100);
-            document.getElementById('stat-unemployment').innerText = unemploymentRate + '%';
+            document.getElementById('stat-unemployment').innerText = Math.round((unemployedCount / npcs.length) * 100) + '%';
 
-            // Bank UI
+            let totalWage = npcs.reduce((s, n) => s + n.wage, 0);
+            let employedCount = npcs.filter(n => n.employer).length;
+            document.getElementById('stat-avg-wage').innerText = (employedCount > 0 ? Math.round(totalWage / employedCount) : 0) + ' $';
+
             document.getElementById('bank-savings').innerText = player.savings.toLocaleString() + ' $';
             document.getElementById('bank-debt').innerText = player.debt.toLocaleString() + ' $';
 
-            // Player Company UI
-            if (PlayerCompany.hasCompany) {
-                document.getElementById('pcomp-cash').innerText = PlayerCompany.cash.toLocaleString() + ' $';
-                document.getElementById('pcomp-inv').innerText = PlayerCompany.inventory;
-                document.getElementById('pcomp-workers').innerText = PlayerCompany.workers + ' người';
-                document.getElementById('pcomp-profit').innerText = PlayerCompany.lastProfit.toLocaleString() + ' $';
+            if (playerCompany.hasCompany) {
+                document.getElementById('pcomp-cash').innerText = playerCompany.cash.toLocaleString() + ' $';
+                let recipe = ProductionSystem.recipes[playerCompany.product];
+                let matKey = recipe ? Object.keys(recipe.inputs)[0] : 'grain';
+                document.getElementById('pcomp-mat-inv').innerText = (playerCompany.inventory[matKey] || 0);
+                let prodKey = recipe ? recipe.output : 'food';
+                document.getElementById('pcomp-prod-inv').innerText = (playerCompany.inventory[prodKey] || 0);
+                document.getElementById('pcomp-workers').innerText = `${playerCompany.workers.length} / ${playerCompany.machines} máy`;
             }
 
-            // Nếu đang mở tab nào thì render lại tab đó
             let activeView = document.querySelector('.view.active');
             if (activeView) {
-                if (activeView.id === 'market') CommoditySystem.renderMarketTable();
+                if (activeView.id === 'market') CommoditySystem.renderTable();
                 if (activeView.id === 'npcs') renderNpcs();
-                if (activeView.id === 'competitors') renderNpcCompanies();
+                if (activeView.id === 'competitors') renderNpcCompaniesUI();
+                if (activeView.id === 'labor') renderLaborMarketUI();
             }
         }
 
-        // Khởi chạy giao diện ban đầu
+        function renderNpcs() {
+            const tbody = document.getElementById('npc-tbody');
+            if (!tbody) return;
+            tbody.innerHTML = '';
+            npcs.slice(0, 25).forEach(n => {
+                tbody.innerHTML += `
+                    <tr onclick="showNpcDetail(${n.id})" style="cursor:pointer;">
+                        <td><b>${n.name}</b> (${n.age})</td>
+                        <td>Hộ #${n.householdId}</td>
+                        <td>${n.employer ? n.employer : '<span style="color:var(--red)">Thất nghiệp</span>'}</td>
+                        <td>${n.cash.toLocaleString()} $</td>
+                        <td>${n.savings.toLocaleString()} $</td>
+                        <td>${n.skills}</td>
+                        <td>${n.status}</td>
+                    </tr>
+                `;
+            });
+        }
+
+        function showNpcDetail(id) {
+            let n = npcs.find(item => item.id === id);
+            if (!n) return;
+            document.getElementById('modal-npc-name').innerText = `Hồ sơ: ${n.name}`;
+            document.getElementById('modal-npc-body').innerHTML = `
+                <b>Tuổi / Giới tính:</b> ${n.age} tuổi (${n.gender})<br>
+                <b>Trình độ học vấn:</b> Cấp ${n.educationLevel}<br>
+                <b>Kỹ năng làm việc:</b> ${n.skills}<br>
+                <b>Nghề nghiệp:</b> ${n.occupation} (${n.employer ? n.employer : 'Không có'})<br>
+                <b>Lương hiện tại:</b> ${n.wage} $/ngày<br>
+                <b>Tiền mặt:</b> ${n.cash.toLocaleString()} $<br>
+                <b>Tiết kiệm ngân hàng:</b> ${n.savings.toLocaleString()} $<br>
+                <b>Khoản nợ:</b> ${n.debt.toLocaleString()} $<br>
+                <b>Trạng thái hành vi:</b> ${n.status}
+            `;
+            document.getElementById('npc-modal').style.display = 'flex';
+        }
+
+        function renderNpcCompaniesUI() {
+            const tbody = document.getElementById('comp-tbody');
+            if (!tbody) return;
+            tbody.innerHTML = '';
+            npcCompanies.forEach(c => {
+                let recipe = ProductionSystem.recipes[c.product];
+                let prodKey = recipe ? recipe.output : '';
+                tbody.innerHTML += `
+                    <tr>
+                        <td><b>${c.name}</b></td>
+                        <td>${prodKey}</td>
+                        <td>${c.cash.toLocaleString()} $</td>
+                        <td>${c.workers.length} người</td>
+                        <td>${c.machines} máy</td>
+                        <td>${c.inventory[prodKey] || 0}</td>
+                        <td><span class="badge badge-green">${c.status}</span></td>
+                    </tr>
+                `;
+            });
+        }
+
+        function renderLaborMarketUI() {
+            const tbody = document.getElementById('job-board-tbody');
+            if (!tbody) return;
+            tbody.innerHTML = '';
+            let allComps = [...npcCompanies];
+            if (playerCompany.hasCompany) allComps.push(playerCompany);
+
+            allComps.forEach(comp => {
+                tbody.innerHTML += `
+                    <tr>
+                        <td><b>${comp.name}</b></td>
+                        <td>${comp.product}</td>
+                        <td>${comp.wage} $ / ngày</td>
+                        <td>Cơ bản</td>
+                        <td><button onclick="alert('Công ty đang tự động tuyển dụng lao động qua Autonomous AI.')">Chi tiết</button></td>
+                    </tr>
+                `;
+            });
+
+            document.getElementById('lab-openings').innerText = allComps.length * 5;
+            document.getElementById('lab-unemployed').innerText = npcs.filter(n => !n.employer).length;
+        }
+
         updateUI();
     </script>
 </body>
