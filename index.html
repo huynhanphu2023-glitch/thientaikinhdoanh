@@ -553,10 +553,7 @@
                 }
 
                 let productionMultiplier = Math.min(maxBatches, Math.floor(availableLabor / recipe.laborReq), Math.floor(company.machines / recipe.machineReq));
-                 if (productionMultiplier <= 0) {
-    company.status = 'Không đủ điều kiện sản xuất';
-    return;
-}
+                 
 
                 // Tiêu thụ nguyên liệu
                 for (let mat in recipe.inputs) {
