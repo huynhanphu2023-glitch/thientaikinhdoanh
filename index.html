@@ -361,7 +361,16 @@ if(company){cn.textContent=company.name;cc.textContent=money(company.cash);cw.te
 const all=allCompanies();vacancies.textContent=all.reduce((s,c)=>s+Math.max(0,capacity(c)-c.workers.length),0);unemp.textContent=npcs.filter(n=>!n.job).length;
 jobsBody.innerHTML=all.map(c=>`<tr><td>${c.name}</td><td>${R[c.product].n}</td><td>${money(c.wage)}</td><td>${Math.max(0,capacity(c)-c.workers.length)}</td></tr>`).join("");
 peopleBody.innerHTML=npcs.slice(0,40).map(n=>`<tr><td>${n.name}</td><td>${n.age}</td><td>${n.job?"Đang làm":"Thất nghiệp"}</td><td>${money(n.wage)}</td><td>${money(n.cash)}</td><td>${money(n.savings)}</td><td>Food ${Math.round(n.needs.food)}</td></tr>`).join("");
-drawChart();
+
+ profileCash.textContent=money(player.cash);
+profileSavings.textContent=money(player.savings);
+profileDebt.textContent=money(player.debt);
+profileScore.textContent=Math.round(player.score);
+
+const net=player.cash+player.savings-player.debt;
+profileNet.textContent=money(net);
+ 
+ drawChart();
 }
 function drawChart(){
 const c=document.getElementById("chart"),ctx=c.getContext("2d"),w=c.width=c.clientWidth*devicePixelRatio,h=c.height=c.clientHeight*devicePixelRatio;ctx.clearRect(0,0,w,h);const a=Game.gdpHistory.slice(-40);if(a.length<2)return;const max=Math.max(...a,1),min=Math.min(...a,0);ctx.beginPath();a.forEach((v,i)=>{const x=i/(a.length-1)*w,y=h-(v-min)/(max-min||1)*h;i?ctx.lineTo(x,y):ctx.moveTo(x,y)});ctx.strokeStyle="#38bdf8";ctx.lineWidth=2*devicePixelRatio;ctx.stroke()
