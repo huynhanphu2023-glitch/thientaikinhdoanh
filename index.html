@@ -787,7 +787,7 @@
             takeLoan(amount) {
                 if (amount > 0) {
                     player.cash += amount;
-                    player.debt += Math.round(amount * (1 + this.interestRateLoan));
+                    player.debt += amount;
                     SimulationEngine.log(`[Ngân hàng]: Vay vốn ${amount}$ (Tổng nợ: ${player.debt}$).`);
                     updateUI();
                 }
