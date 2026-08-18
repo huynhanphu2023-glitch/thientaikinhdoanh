@@ -553,7 +553,7 @@
                 }
 
                 let productionMultiplier = Math.min(maxBatches, Math.floor(availableLabor / recipe.laborReq), Math.floor(company.machines / recipe.machineReq));
-                productionMultiplier = Math.max(1, productionMultiplier);
+                
 
                 // Tiêu thụ nguyên liệu
                 for (let mat in recipe.inputs) {
