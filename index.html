@@ -66,7 +66,59 @@ canvas{width:100%;height:240px;background:var(--panel);border:1px solid var(--li
 <h2>Thị trường hàng hóa</h2><div class="sub">Giá thay đổi theo cung, cầu, tồn kho và chi phí.</div><br>
 <table><thead><tr><th>Hàng hóa</th><th>Giá</th><th>Cung</th><th>Cầu</th><th>Giao dịch</th><th>Xu hướng</th></tr></thead><tbody id="marketBody"></tbody></table>
 </section>
+<section id="profile" class="view">
+<h2>👤 Trang cá nhân</h2>
+<div class="sub">Hồ sơ và tài sản riêng của người chơi.</div>
 
+<div class="grid">
+<div class="card"><div class="title">Tên</div><div class="val">Người chơi</div></div>
+<div class="card"><div class="title">Tuổi</div><div class="val">18</div></div>
+<div class="card"><div class="title">Nghề nghiệp</div><div class="val">Doanh nhân</div></div>
+<div class="card"><div class="title">Học vấn</div><div class="val">Phổ thông</div></div>
+<div class="card"><div class="title">Kỹ năng</div><div class="val">35</div></div>
+<div class="card"><div class="title">Danh tiếng</div><div class="val">50</div></div>
+<div class="card"><div class="title">Credit Score</div><div class="val" id="profileScore">750</div></div>
+</div>
+
+<h3>💰 Tài sản cá nhân</h3>
+
+<div class="grid">
+<div class="card">
+<div class="title">Tiền mặt</div>
+<div class="val" id="profileCash">$0</div>
+</div>
+
+<div class="card">
+<div class="title">Tiết kiệm</div>
+<div class="val" id="profileSavings">$0</div>
+</div>
+
+<div class="card">
+<div class="title">Nhà / đất</div>
+<div class="val">$0</div>
+</div>
+
+<div class="card">
+<div class="title">Xe</div>
+<div class="val">$0</div>
+</div>
+
+<div class="card">
+<div class="title">Đầu tư</div>
+<div class="val">$0</div>
+</div>
+
+<div class="card">
+<div class="title">Nợ</div>
+<div class="val" id="profileDebt">$0</div>
+</div>
+
+<div class="card">
+<div class="title">Tài sản ròng</div>
+<div class="val" id="profileNet">$0</div>
+</div>
+</div>
+</section>
 <section id="company" class="view">
 <h2>Doanh nghiệp của bạn</h2><div class="sub">Tự quyết định vốn, ngành, máy móc, nhân sự, giá bán và mở rộng.</div>
 <div id="foundBox" class="controls">
