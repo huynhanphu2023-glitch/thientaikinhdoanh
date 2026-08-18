@@ -1,0 +1,556 @@
+
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Project Persistent - Macro Economic Simulator</title>
+    <style>
+        :root {
+            --bg-main: #090d16;
+            --bg-panel: #111827;
+            --bg-card: #1f2937;
+            --border-color: #374151;
+            --text-main: #f3f4f6;
+            --text-muted: #9ca3af;
+            --accent: #10b981;
+            --accent-blue: #3b82f6;
+            --danger: #ef4444;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: 'Courier New', Courier, monospace; /* Phong cách terminal/dữ liệu tài chính */
+        }
+
+        body {
+            background-color: var(--bg-main);
+            color: var(--text-main);
+            display: flex;
+            height: 100vh;
+            overflow: hidden;
+        }
+
+        /* SIDEBAR NAVIGATION */
+        aside {
+            width: 280px;
+            background-color: var(--bg-panel);
+            border-right: 1px solid var(--border-color);
+            display: flex;
+            flex-direction: column;
+        }
+
+        .brand {
+            padding: 20px;
+            font-size: 1.1rem;
+            font-weight: bold;
+            color: var(--accent);
+            border-bottom: 1px solid var(--border-color);
+            background-color: #0d131f;
+        }
+
+        .nav-menu {
+            list-style: none;
+            overflow-y: auto;
+            flex: 1;
+            padding: 10px 0;
+        }
+
+        .nav-item {
+            padding: 12px 20px;
+            cursor: pointer;
+            font-size: 0.85rem;
+            color: var(--text-muted);
+            transition: all 0.2s;
+            border-left: 3px solid transparent;
+        }
+
+        .nav-item:hover, .nav-item.active {
+            background-color: var(--bg-card);
+            color: var(--text-main);
+            border-left-color: var(--accent);
+        }
+
+        /* MAIN CONTENT AREA */
+        main {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+        }
+
+        header.topbar {
+            height: 60px;
+            background-color: var(--bg-panel);
+            border-bottom: 1px solid var(--border-color);
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 0 30px;
+        }
+
+        .ticker-bar {
+            font-size: 0.9rem;
+            color: var(--accent-blue);
+        }
+
+        .content-body {
+            flex: 1;
+            padding: 30px;
+            overflow-y: auto;
+        }
+
+        .page-view {
+            display: none;
+        }
+
+        .page-view.active {
+            display: block;
+        }
+
+        h2 {
+            margin-bottom: 20px;
+            font-size: 1.4rem;
+            border-bottom: 1px solid var(--border-color);
+            padding-bottom: 10px;
+        }
+
+        /* GRID & CARDS */
+        .grid-4 {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+            gap: 20px;
+            margin-bottom: 25px;
+        }
+
+        .card {
+            background-color: var(--bg-panel);
+            border: 1px solid var(--border-color);
+            border-radius: 6px;
+            padding: 20px;
+        }
+
+        .card-title {
+            font-size: 0.8rem;
+            color: var(--text-muted);
+            text-transform: uppercase;
+            margin-bottom: 8px;
+        }
+
+        .card-value {
+            font-size: 1.5rem;
+            font-weight: bold;
+            color: var(--accent);
+        }
+
+        /* TABLES & CONTROLS */
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            background-color: var(--bg-panel);
+            border-radius: 6px;
+            overflow: hidden;
+            border: 1px solid var(--border-color);
+            margin-bottom: 20px;
+        }
+
+        th, td {
+            padding: 12px 15px;
+            text-align: left;
+            border-bottom: 1px solid var(--border-color);
+            font-size: 0.9rem;
+        }
+
+        th {
+            background-color: #161e2e;
+            color: var(--text-muted);
+        }
+
+        btn, .btn {
+            background-color: var(--accent);
+            color: #000;
+            border: none;
+            padding: 8px 16px;
+            font-weight: bold;
+            border-radius: 4px;
+            cursor: pointer;
+            font-family: 'Courier New', Courier, monospace;
+            transition: opacity 0.2s;
+        }
+
+        .btn:hover {
+            opacity: 0.85;
+        }
+
+        .btn-secondary {
+            background-color: var(--accent-blue);
+            color: #fff;
+        }
+
+        .log-box {
+            background-color: var(--bg-panel);
+            border: 1px solid var(--border-color);
+            border-radius: 6px;
+            padding: 15px;
+            height: 150px;
+            overflow-y: auto;
+            font-size: 0.8rem;
+            color: var(--text-muted);
+        }
+    </style>
+</head>
+<body>
+
+    <!-- SIDEBAR MENU ĐIỀU HƯỚNG 20 HỆ THỐNG -->
+    <aside>
+        <div class="brand">⚡ MACRO-SIM v1.0</div>
+        <ul class="nav-menu">
+            <li class="nav-item active" onclick="switchTab('dashboard', event)">01. Tổng quan Vĩ mô</li>
+            <li class="nav-item" onclick="switchTab('map', event)">02. Bản đồ & Bất động sản</li>
+            <li class="nav-item" onclick="switchTab('enterprise', event)">03. Startup & Doanh nghiệp</li>
+            <li class="nav-item" onclick="switchTab('market', event)">04. Cung - Cầu & Giá cả</li>
+            <li class="nav-item" onclick="switchTab('finance', event)">05. Ngân hàng & Tín dụng</li>
+            <li class="nav-item" onclick="switchTab('labor', event)">06. Thị trường Lao động</li>
+            <li class="nav-item" onclick="switchTab('supply', event)">07. Sản xuất & Chuỗi cung ứng</li>
+            <li class="nav-item" onclick="switchTab('government', event)">08. Chính phủ, Luật & Thuế</li>
+            <li class="nav-item" onclick="switchTab('lifestyle', event)">09. Đời sống & Cá nhân</li>
+        </ul>
+    </aside>
+
+    <!-- MAIN VIEW -->
+    <main>
+        <header class="topbar">
+            <div class="ticker-bar" id="game-clock">Thời gian Game: Ngày 1 | 08:00 AM</div>
+            <div>Trạng thái: <span style="color: var(--accent);">Đang chạy (Persistent)</span></div>
+        </header>
+
+        <div class="content-body">
+            
+            <!-- TRANG 1: TỔNG QUAN VĨ MÔ -->
+            <div id="dashboard" class="page-view active">
+                <h2>Hệ Thống Tổng Quan Vĩ Mô</h2>
+                <div class="grid-4">
+                    <div class="card">
+                        <div class="card-title">GDP Toàn Cầu</div>
+                        <div class="card-value" id="stat-gdp">10,000,000 $</div>
+                    </div>
+                    <div class="card">
+                        <div class="card-title">Tỷ lệ Lạm phát</div>
+                        <div class="card-value" id="stat-inflation">2.1%</div>
+                    </div>
+                    <div class="card">
+                        <div class="card-title">Dân số / NPC</div>
+                        <div class="card-value">50,000</div>
+                    </div>
+                    <div class="card">
+                        <div class="card-title">Tiền mặt Người chơi</div>
+                        <div class="card-value" id="stat-cash">50,000 $</div>
+                    </div>
+                </div>
+                <h3>Nhật ký sự kiện thời gian thực (Persistent Log)</h3>
+                <br>
+                <div class="log-box" id="event-log">
+                    [System]: Khởi tạo thế giới thành công. 20 hệ thống lõi đã sẵn sàng vận hành.<br>
+                </div>
+            </div>
+
+            <!-- TRANG 2: BẢN ĐỒ & BẤT ĐỘNG SẢN -->
+            <div id="map" class="page-view">
+                <h2>Hệ Thống Bản Đồ & Đất Đai</h2>
+                <p style="color: var(--text-muted); margin-bottom: 15px;">Quản lý các khu vực địa lý, mua bán quyền sử dụng đất và xây dựng cơ sở hạ tầng.</p>
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Khu vực</th>
+                            <th>Loại đất</th>
+                            <th>Giá thị trường</th>
+                            <th>Trạng thái sở hữu</th>
+                            <th>Thao tác</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td>Khu Trung Tâm A1</td>
+                            <td>Thương mại / Văn phòng</td>
+                            <td>500,000 $</td>
+                            <td id="land-status-1">Thuộc sở hữu Chính phủ / NPC</td>
+                            <td><button class="btn" onclick="buyLand(1, 500000)">Mua đất</button></td>
+                        </tr>
+                        <tr>
+                            <td>Khu Công Nghiệp B2</td>
+                            <td>Nhà máy / Kho bãi</td>
+                            <td>200,000 $</td>
+                            <td id="land-status-2">Trống</td>
+                            <td><button class="btn" onclick="buyLand(2, 200000)">Mua đất</button></td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+
+            <!-- TRANG 3: DOANH NGHIỆP & STARTUP -->
+            <div id="enterprise" class="page-view">
+                <h2>Hệ Thống Doanh Nghiệp & Startup</h2>
+                <div class="grid-4">
+                    <div class="card">
+                        <div class="card-title">Doanh thu ngày</div>
+                        <div class="card-value">0 $</div>
+                    </div>
+                    <div class="card">
+                        <div class="card-title">Chi phí vận hành</div>
+                        <div class="card-value">1,200 $ / ngày</div>
+                    </div>
+                </div>
+                <div class="card" style="margin-top: 20px;">
+                    <h3>Thành lập công ty mới</h3>
+                    <p style="color: var(--text-muted); margin: 10px 0;">Đăng ký pháp nhân doanh nghiệp để bắt đầu sản xuất và kinh doanh thương mại.</p>
+                    <button class="btn" onclick="foundCompany()">Đăng ký Startup (Phí: 10,000 $)</button>
+                </div>
+            </div>
+
+            <!-- TRANG 4: CUNG CẦU & THỊ TRƯỜNG -->
+            <div id="market" class="page-view">
+                <h2>Cung - Cầu & Biểu Đồ Giá Cả</h2>
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Hàng hóa</th>
+                            <th>Tổng Cung (Supply)</th>
+                            <th>Tổng Cầu (Demand)</th>
+                            <th>Giá Thị Trường</th>
+                            <th>Biến động</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td>Thép nguyên tấm</td>
+                            <td id="mkt-supply-steel">1,200 tấn</td>
+                            <td id="mkt-demand-steel">1,450 tấn</td>
+                            <td id="mkt-price-steel">250 $ / tấn</td>
+                            <td style="color: var(--accent);">▲ +2.4%</td>
+                        </tr>
+                        <tr>
+                            <td>Lương thực / Thực phẩm</td>
+                            <td id="mkt-supply-food">10,000 đơn vị</td>
+                            <td id="mkt-demand-food">9,800 đơn vị</td>
+                            <td id="mkt-price-food">50 $ / đơn vị</td>
+                            <td style="color: var(--danger);">▼ -0.5%</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+
+            <!-- TRANG 5: NGÂN HÀNG & TÍN DỤNG -->
+            <div id="finance" class="page-view">
+                <h2>Ngân Hàng, Tín Dụng & Nợ Vay</h2>
+                <div class="grid-4">
+                    <div class="card">
+                        <div class="card-title">Hạn mức tín dụng</div>
+                        <div class="card-value">100,000 $</div>
+                    </div>
+                    <div class="card">
+                        <div class="card-title">Dư nợ hiện tại</div>
+                        <div class="card-value" id="bank-debt">0 $</div>
+                    </div>
+                </div>
+                <button class="btn btn-secondary" onclick="takeLoan(20000)">Vay tín dụng nhanh (20,000 $)</button>
+            </div>
+
+            <!-- TRANG 6: LAO ĐỘNG -->
+            <div id="labor" class="page-view">
+                <h2>Thị Trường Lao Động & Nhân Sự</h2>
+                <p style="color: var(--text-muted);">Thuê mướn NPC làm công nhân hoặc quản lý cho nhà máy.</p>
+                <br>
+                <button class="btn" onclick="hireWorker()">Thuê 1 Công nhân (Lương: 50$/ngày)</button>
+                <p style="margin-top: 15px;">Số lượng công nhân đang sở hữu: <span id="worker-count" style="color: var(--accent);">0</span></p>
+            </div>
+
+            <!-- TRANG 7: SẢN XUẤT & CHUỖI CUNG ỨNG -->
+            <div id="supply" class="page-view">
+                <h2>Nhà Máy & Chuỗi Cung Ứng</h2>
+                <p style="color: var(--text-muted);">Chuyển đổi nguyên liệu thô thành sản phẩm giá trị cao.</p>
+                <br>
+                <button class="btn" onclick="runProductionLine()">Vận hành dây chuyền sản xuất Thép</button>
+                <p style="margin-top: 15px;">Kho chứa thép: <span id="inv-steel" style="color: var(--accent);">0</span> tấn</p>
+            </div>
+
+            <!-- TRANG 8: CHÍNH PHỦ & LUẬT PHÁP -->
+            <div id="government" class="page-view">
+                <h2>Chính Phủ, Thuế & Pháp Lý</h2>
+                <div class="card">
+                    <div class="card-title">Thuế suất Doanh nghiệp hiện hành</div>
+                    <div class="card-value">15%</div>
+                </div>
+            </div>
+
+            <!-- TRANG 9: ĐỜI SỐNG CÁ NHÂN -->
+            <div id="lifestyle" class="page-view">
+                <h2>Đời Sống & Tiêu Dùng Cá Nhân</h2>
+                <p style="color: var(--text-muted);">Quản lý chỉ số hạnh phúc, nhà ở cá nhân và mức độ tiêu thụ tài sản.</p>
+            </div>
+
+        </div>
+    </main>
+
+    <script>
+        // --- 1. STATE QUẢN LÝ DỮ LIỆU TOÀN CỤC ---
+        let gameState = {
+            day: 1,
+            hour: 8,
+            cash: 50000,
+            gdp: 10000000,
+            workers: 0,
+            steelInventory: 0,
+            debt: 0,
+            hasCompany: false,
+            ownedLand: []
+        };
+
+        // --- 2. HỆ THỐNG ĐIỀU HƯỚNG TAB ---
+        function switchTab(tabId, event) {
+            document.querySelectorAll('.page-view').forEach(el => el.classList.remove('active'));
+            document.querySelectorAll('.nav-item').forEach(el => el.classList.remove('active'));
+            
+            document.getElementById(tabId).classList.add('active');
+            event.currentTarget.classList.add('active');
+        }
+
+        // --- 3. HỆ THỐNG THỜI GIAN CHẠY NGẦM (PERSISTENT TICK ENGINE) ---
+        // Mỗi 2 giây thực tế = 1 giờ trong game
+        setInterval(() => {
+            gameState.hour += 1;
+            if (gameState.hour >= 24) {
+                gameState.hour = 0;
+                gameState.day += 1;
+                triggerDailyEconomicCycle();
+            }
+            updateClockUI();
+        }, 2000);
+
+        function updateClockUI() {
+            let timeStr = gameState.hour < 10 ? 0${gameState.hour}:00 AM : ${gameState.hour}:00;
+            if(gameState.hour >= 12) timeStr = ${gameState.hour}:00 PM;
+            document.getElementById('game-clock').innerText = Thời gian Game: Ngày ${gameState.day} | ${timeStr};
+        }
+
+        // Vòng lặp kinh tế mỗi ngày (NPC tiêu dùng, trả lương, trừ chi phí)
+        function triggerDailyEconomicCycle() {
+            if (gameState.workers > 0) {
+                let totalSalary = gameState.workers * 50;
+                gameState.cash -= totalSalary;
+                logEvent([Lao động]: Đã chi trả ${totalSalary}$ tiền lương cho ${gameState.workers} công nhân.);
+            }
+            updateUIValues();
+        }
+
+        function logEvent(text) {
+            const logBox = document.getElementById('event-log');
+            logBox.innerHTML = ${text}<br> + logBox.innerHTML;
+        }
+
+        function updateUIValues() {
+            document.getElementById('stat-cash').innerText = gameState.cash.toLocaleString() + ' $';
+            document.getElementById('stat-gdp').innerText = gameState.gdp.toLocaleString() + ' $';
+            document.getElementById('worker-count').innerText = gameState.workers;
+            document.getElementById('inv-steel').innerText = gameState.steelInventory;
+            document.getElementById('bank-debt').innerText = gameState.debt.toLocaleString() + ' $';
+        }
+
+        // --- 4. LOGIC TƯƠNG TÁC CÁC HỆ THỐNG ---
+        function foundCompany() {
+            if (gameState.hasCompany) {
+                alert("Bạn đã sở hữu doanh nghiệp rồi!");
+                return;
+            }
+            if (gameState.cash < 10000) {
+                alert("Không đủ tiền thành lập công ty (Cần ít nhất 10,000 $)");
+                return;
+            }
+            gameState.cash -= 10000;
+            gameState.hasCompany = true;
+            logEvent([Startup]: Đã đăng ký thành công doanh nghiệp mới!);
+            updateUIValues();
+        }
+
+        function hireWorker() {
+            gameState.workers += 1;
+            logEvent([Nhân sự]: Đã tuyển thêm 1 công nhân mới.);
+            updateUIValues();
+        }
+
+        function runProductionLine() {
+            if (!gameState.hasCompany) {
+                alert("Bạn phải thành lập công ty trước khi sản xuất!");
+                return;
+            }
+            gameState.steelInventory += 10;
+            gameState.gdp += 1500;
+            logEvent([Sản xuất]: Nhà máy sản xuất thành công 10 tấn thép.);
+            updateUIValues();
+        }
+
+        function buyLand(id, price) {
+            if (gameState.cash < price) {
+                alert("Không đủ tiền mua khu đất này!");
+                return;
+            }
+            gameState.cash -= price;
+            document.getElementById(land-status-${id}).innerText = "Thuộc sở hữu của Bạn";
+            logEvent([Bất động sản]: Đã mua thành công khu đất số ${id} với giá ${price}$.);
+            updateUIValues();
+        }
+
+        function takeLoan(amount) {
+            gameState.cash += amount;
+            gameState.debt += amount;
+            logEvent([Ngân hàng]: Giải ngân khoản vay tín dụng ${amount}$.);
+            updateUIValues();
+        }
+    </script>
+</body>
+</html>
+
+Tôi thấy bạn đã gửi toàn bộ index.html hiện tại của game. Code này đang là bản prototype khá cơ bản: có 9 tab, thời gian chạy, tiền, công ty, đất, vay, lao động và sản xuất.
+
+Nếu mục tiêu của bạn là tiếp tục xây game mô phỏng kinh tế lớn mà trước đó mình đang làm, thì mình có thể lấy chính file này làm nền, không cần đập đi làm lại.
+
+Hiện tại có mấy vấn đề lớn:
+
+Sidebar mới có 9/20 hệ thống, chưa đủ 20 hệ thống.
+
+setInterval(2000) chạy rất nhanh → 2 giây = 1 giờ game, nên nền kinh tế sẽ thay đổi cực nhanh.
+
+Mua đất chưa lưu vào ownedLand → reload là mất.
+
+Không có hệ thống save/load.
+
+Không có NPC thật sự → dân số chỉ là con số.
+
+Cung/cầu chưa tác động thực sự đến giá.
+
+Công ty chưa có doanh thu/lợi nhuận thực.
+
+Công nhân có thể thuê vô hạn mà chưa kiểm tra tiền.
+
+Vay tiền chưa có lãi suất + kỳ hạn + trả nợ.
+
+Sản xuất thép chưa tiêu hao nguyên liệu.
+
+GDP tăng theo nút bấm, chưa dựa trên hoạt động kinh tế.
+
+Thuế chỉ hiển thị, chưa được tính.
+
+Chưa có sự kiện ngẫu nhiên / khủng hoảng / phá sản / cạnh tranh / suy thoái.
+
+Chưa có hệ thống nhân vật, kỹ năng, học nghề, bằng cấp.
+
+Chưa có thị trường chứng khoán, tiền tệ, ngoại thương...
+
+Reload trang là mất toàn bộ tiến trình.
+
+Quan trọng nhất: đừng tiếp tục nhét tất cả vào một đống JavaScript như hiện tại. Với game này, nên xây thành từng hệ thống nhưng vẫn có thể giữ một file HTML duy nhất ở giai đoạn đầu để bạn dễ chạy.
+
+Nếu bạn muốn, mình có thể , trong đó có save tự động bằng localStorage, kinh tế chạy thật, cung-cầu → giá → doanh thu → lợi nhuận → thuế → tiền người chơi, NPC và sự kiện ngẫu nhiên.
+
+
